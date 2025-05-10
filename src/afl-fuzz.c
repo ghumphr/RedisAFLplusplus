@@ -938,6 +938,7 @@ int main(int argc, char **argv_orig, char **envp) {
         if (!optarg) { FATAL("Missing path for -J"); }
         afl->should_sync_n_fuzz = 1;
         afl->n_fuzz_sync_file = ck_strdup(optarg);
+	OKF("Should synchronize to %s", afl->n_fuzz_sync_file);
         break;
 
       case 'F':                                         /* foreign sync dir */
@@ -1746,11 +1747,7 @@ int main(int argc, char **argv_orig, char **envp) {
   /* Dynamically allocate memory for AFLFast schedules */
   if (afl->schedule >= FAST && afl->schedule <= RARE) {
 
-    if(unlikely(afl->should_sync_n_fuzz))
-    {
-      afl->n_fuzz = ck_alloc(N_FUZZ_SIZE * sizeof(u32));
-    }
-    else
+    if(afl->should_sync_n_fuzz)
     {
       int fd = open(afl->n_fuzz_sync_file, O_RDWR | O_CREAT, 0600);
       if(fd < 0)
@@ -1767,6 +1764,12 @@ int main(int argc, char **argv_orig, char **envp) {
       {
         FATAL("mmap() of n_fuzz sync file failed\n");
       }
+      OKF("Synchronizing n_fuzz on %s\n", afl->n_fuzz_sync_file);
+    }
+    else
+    {
+      afl->n_fuzz = ck_alloc(N_FUZZ_SIZE * sizeof(u32));
+      OKF("NOT synchronizing n_fuzz\n");
     }
 
   }
