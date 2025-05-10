@@ -282,6 +282,7 @@ static void usage(u8 *argv0, int more_help) {
       "  -F path       - sync to a foreign fuzzer queue directory (requires "
       "-M, can\n"
       "                  be specified up to %u times)\n"
+      "  -J            - synchronize n_fuzz table\n"
       "  -z            - skip the enhanced deterministic fuzzing\n"
       "                  (note that the old -d and -D flags are ignored.)\n"
       "  -T text       - text banner to show on the screen\n"
@@ -612,10 +613,10 @@ int main(int argc, char **argv_orig, char **envp) {
 
   afl->shmem_testcase_mode = 1;  // we always try to perform shmem fuzzing
 
-  // still available: HjJkKqrv
+  // still available: HjkKqrv
   while (
       (opt = getopt(argc, argv,
-                    "+a:Ab:B:c:CdDe:E:f:F:g:G:hi:I:l:L:m:M:nNo:Op:P:QRs:S:t:T:"
+                    "+a:Ab:B:c:CdDe:E:f:F:g:G:hi:I:l:L:m:M:nNo:Op:P:QRs:S:t:T:J:"
                     "uUV:w:WXx:YzZ")) > 0) {
 
     switch (opt) {
@@ -931,6 +932,12 @@ int main(int argc, char **argv_orig, char **envp) {
 
         afl->sync_id = ck_strdup(optarg);
         afl->is_secondary_node = 1;
+        break;
+
+      case 'J':
+        if (!optarg) { FATAL("Missing path for -J"); }
+        afl->should_sync_n_fuzz = 1;
+        afl->n_fuzz_sync_file = ck_strdup(optarg);
         break;
 
       case 'F':                                         /* foreign sync dir */
@@ -1739,7 +1746,28 @@ int main(int argc, char **argv_orig, char **envp) {
   /* Dynamically allocate memory for AFLFast schedules */
   if (afl->schedule >= FAST && afl->schedule <= RARE) {
 
-    afl->n_fuzz = ck_alloc(N_FUZZ_SIZE * sizeof(u32));
+    if(unlikely(afl->should_sync_n_fuzz))
+    {
+      afl->n_fuzz = ck_alloc(N_FUZZ_SIZE * sizeof(u32));
+    }
+    else
+    {
+      int fd = open(afl->n_fuzz_sync_file, O_RDWR | O_CREAT, 0600);
+      if(fd < 0)
+      {
+        FATAL("Unable to open n_fuzz sync file %s\n", afl->n_fuzz_sync_file);
+      }
+      int result = ftruncate(fd, N_FUZZ_SIZE * sizeof(u32));
+      if(result < 0)
+      {
+        FATAL("Unable to [re]size n_fuzz sync file to %i bytes\n", (int) (N_FUZZ_SIZE * sizeof(u32)));
+      }
+      afl->n_fuzz = mmap(NULL, N_FUZZ_SIZE * sizeof(u32), PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
+      if(afl->n_fuzz == NULL)
+      {
+        FATAL("mmap() of n_fuzz sync file failed\n");
+      }
+    }
 
   }
 

@@ -553,6 +553,7 @@ typedef struct afl_state {
       *in_bitmap,                       /* Input bitmap                     */
       *file_extension,                  /* File extension                   */
       *orig_cmdline,                    /* Original command line            */
+      *n_fuzz_sync_file,                /* File to mmap() for n_fuzz        */
       *infoexec;                       /* Command to execute on a new crash */
 
   u32 hang_tmout,                       /* Timeout used for hang det (ms)   */
@@ -600,6 +601,7 @@ typedef struct afl_state {
       expand_havoc,                /* perform expensive havoc after no find */
       cycle_schedules,                  /* cycle power schedules?           */
       old_seed_selection,               /* use vanilla afl seed selection   */
+      should_sync_n_fuzz,               /* use shared, mmap()ed n_fuzz table */
       reinit_table;                     /* reinit the queue weight table    */
 
   u8 *virgin_bits,                      /* Regions yet untouched by fuzzing */

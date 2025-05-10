@@ -478,10 +478,11 @@ u8 __attribute__((hot)) save_if_interesting(afl_state_t *afl, void *mem,
       classify_counts(&afl->fsrv);
       u64 cksum = hash64(afl->fsrv.trace_bits, afl->fsrv.map_size, HASH_CONST);
 
-      // Saturated increment
-      if (likely(afl->n_fuzz[cksum % N_FUZZ_SIZE] < 0xFFFFFFFF))
-        afl->n_fuzz[cksum % N_FUZZ_SIZE]++;
-
+      // Shared memory-safe saturated increment
+      unsigned int ix = cksum % N_FUZZ_SIZE;
+      afl->n_fuzz[ix]++; // Note: this can fail sometimes on ARM without lasting consequences
+      if (likely(afl->n_fuzz[ix] > 0xF0000000))
+        afl->n_fuzz[ix] = 0xF0000000;
     }
 
     return 0;
@@ -511,10 +512,11 @@ u8 __attribute__((hot)) save_if_interesting(afl_state_t *afl, void *mem,
 
     cksum = hash64(afl->fsrv.trace_bits, afl->fsrv.map_size, HASH_CONST);
 
-    /* Saturated increment */
-    if (likely(afl->n_fuzz[cksum % N_FUZZ_SIZE] < 0xFFFFFFFF))
-      afl->n_fuzz[cksum % N_FUZZ_SIZE]++;
-
+    // Shared-memory safe saturated increment 
+    unsigned int ix = cksum % N_FUZZ_SIZE;
+    afl->n_fuzz[ix]++; // Note: this can fail sometimes on ARM without lasting consequences
+    if (likely(afl->n_fuzz[ix] > 0xF0000000))
+      afl->n_fuzz[ix] = 0xF0000000;
   }
 
   /* Only "normal" inputs seem interested to us */
