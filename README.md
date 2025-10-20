@@ -1,4 +1,4 @@
-## What is this??
+## What is this?
 
 <img src="https://github.com/ghumphr/RedisAFLplusplus/blob/main/docs/resources/american_fuzzy_lop_on_redis.png?raw=true" align="right" width="440px"/>
 
