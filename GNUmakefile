@@ -148,6 +148,11 @@ ifdef PROFILING
   override LDFLAGS += -pg
 endif
 
+ifdef USE_REDIS
+  override LDFLAGS += -lhiredis
+  override CFLAGS += -DUSE_REDIS=1
+endif
+
 ifdef INTROSPECTION
   $(info Compiling with introspection documentation)
   override CFLAGS_OPT += -DINTROSPECTION=1

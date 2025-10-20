@@ -812,7 +812,8 @@ void update_bitmap_score(afl_state_t *afl, struct queue_entry *q,
 
   } else {
 
-    fuzz_p2 = q->fuzz_level;
+//    fuzz_p2 = q->fuzz_level;
+    fuzz_p2 = GET_FUZZ_LEVEL(q);
 
   }
 
@@ -851,7 +852,8 @@ void update_bitmap_score(afl_state_t *afl, struct queue_entry *q,
 
           } else {
 
-            top_rated_fuzz_p2 = afl->top_rated[i]->fuzz_level;
+//            top_rated_fuzz_p2 = afl->top_rated[i]->fuzz_level;
+            top_rated_fuzz_p2 = GET_FUZZ_LEVEL(afl->top_rated[i]);
 
           }
 
@@ -1094,7 +1096,8 @@ void update_bitmap_rescore(afl_state_t *afl, struct queue_entry *q, u32 index) {
 
   } else {
 
-    fuzz_p2 = q->fuzz_level;
+//    fuzz_p2 = q->fuzz_level;
+    fuzz_p2 = GET_FUZZ_LEVEL(q);
 
   }
 
@@ -1125,7 +1128,8 @@ void update_bitmap_rescore(afl_state_t *afl, struct queue_entry *q, u32 index) {
 
     } else {
 
-      top_rated_fuzz_p2 = afl->top_rated[i]->fuzz_level;
+//      top_rated_fuzz_p2 = afl->top_rated[i]->fuzz_level;
+      top_rated_fuzz_p2 = GET_FUZZ_LEVEL(afl->top_rated[i]);
 
     }
 
@@ -1321,7 +1325,8 @@ u32 calculate_score(afl_state_t *afl, struct queue_entry *q) {
       n_items = 0;
 
       // Don't modify perf_score for unfuzzed seeds
-      if (!q->fuzz_level) break;
+//      if (!q->fuzz_level) break;
+      if (!GET_FUZZ_LEVEL(q)) break;
 
       u32 i;
       for (i = 0; i < afl->queued_items; i++) {
@@ -1352,7 +1357,8 @@ u32 calculate_score(afl_state_t *afl, struct queue_entry *q) {
     case FAST:
 
       // Don't modify unfuzzed seeds
-      if (!q->fuzz_level) break;
+//      if (!q->fuzz_level) break;
+      if (!GET_FUZZ_LEVEL(q)) break;
 
       switch ((u32)log2(afl->n_fuzz[q->n_fuzz_entry])) {
 
@@ -1391,17 +1397,21 @@ u32 calculate_score(afl_state_t *afl, struct queue_entry *q) {
 
     case LIN:
       // Don't modify perf_score for unfuzzed seeds
-      if (!q->fuzz_level) break;
+//      if (q->fuzz_level) break;
+      if (!GET_FUZZ_LEVEL(q)) break;
 
-      factor = q->fuzz_level / (afl->n_fuzz[q->n_fuzz_entry] + 1);
+//      factor = q->fuzz_level / (afl->n_fuzz[q->n_fuzz_entry] + 1);
+      factor = GET_FUZZ_LEVEL(q) / (afl->n_fuzz[q->n_fuzz_entry] + 1);
       break;
 
     case QUAD:
       // Don't modify perf_score for unfuzzed seeds
-      if (!q->fuzz_level) break;
+//      if (q->fuzz_level) break;
+      if (!GET_FUZZ_LEVEL(q)) break;
 
       factor =
-          q->fuzz_level * q->fuzz_level / (afl->n_fuzz[q->n_fuzz_entry] + 1);
+//          q->fuzz_level * q->fuzz_level / (afl->n_fuzz[q->n_fuzz_entry] + 1);
+          GET_FUZZ_LEVEL(q) * GET_FUZZ_LEVEL(q) / (afl->n_fuzz[q->n_fuzz_entry] + 1);
       break;
 
     case MMOPT:

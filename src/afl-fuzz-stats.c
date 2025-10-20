@@ -633,7 +633,8 @@ void plot_profile_data(afl_state_t *afl, struct queue_entry *q) {
           "and spend %lld/%lld(%02.2f), cover %02.2f yet, %d/%d undet bits, "
           "continue %d.\n",
           current_ms / 1000 / 3600, (current_ms / 1000 / 60) % 60,
-          (current_ms / 1000) % 60, afl->current_entry, q->fuzz_level,
+//          (current_ms / 1000) % 60, afl->current_entry, q->fuzz_level,
+          (current_ms / 1000) % 60, afl->current_entry, GET_FUZZ_LEVEL(q),
           afl->havoc_prof->edge_det_stage, afl->havoc_prof->edge_havoc_stage,
           current_edges, det_finding_rate,
           afl->havoc_prof->det_stage_time / 1000,
@@ -1106,7 +1107,8 @@ void show_stats_normal(afl_state_t *afl) {
      put them in a temporary buffer first. */
 
   sprintf(tmp, "%s%s%u (%0.01f%%)", u_stringify_int(IB(0), afl->current_entry),
-          afl->queue_cur->favored ? "." : "*", afl->queue_cur->fuzz_level,
+//          afl->queue_cur->favored ? "." : "*", afl->queue_cur->fuzz_level,
+          afl->queue_cur->favored ? "." : "*", GET_FUZZ_LEVEL(afl->queue_cur),
           ((double)afl->current_entry * 100) / afl->queued_items);
 
   SAYF(bV bSTOP "  now processing : " cRST "%-18s " bSTG bV bSTOP, tmp);
@@ -1919,7 +1921,8 @@ void show_stats_pizza(afl_state_t *afl) {
      put them in a temporary buffer first. */
 
   sprintf(tmp, "%s%s%u (%0.01f%%)", u_stringify_int(IB(0), afl->current_entry),
-          afl->queue_cur->favored ? "." : "*", afl->queue_cur->fuzz_level,
+//          afl->queue_cur->favored ? "." : "*", afl->queue_cur->fuzz_level,
+          afl->queue_cur->favored ? "." : "*", GET_FUZZ_LEVEL(afl->queue_cur),
           ((double)afl->current_entry * 100) / afl->queued_items);
 
   SAYF(bV bSTOP "                        now baking : " cRST

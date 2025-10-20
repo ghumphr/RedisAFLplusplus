@@ -282,7 +282,9 @@ static void usage(u8 *argv0, int more_help) {
       "  -F path       - sync to a foreign fuzzer queue directory (requires "
       "-M, can\n"
       "                  be specified up to %u times)\n"
-      "  -J            - synchronize path count table\n"
+      "  -J path       - synchronize path count table with shared file\n"
+      "  -r host       - synchronize fuzz count with Redis \n"
+      "  -R port       - use port Redis \n"
       "  -z            - skip the enhanced deterministic fuzzing\n"
       "                  (note that the old -d and -D flags are ignored.)\n"
       "  -T text       - text banner to show on the screen\n"
@@ -612,11 +614,13 @@ int main(int argc, char **argv_orig, char **envp) {
   rand_set_seed(afl, tv.tv_sec ^ tv.tv_usec ^ getpid());
 
   afl->shmem_testcase_mode = 1;  // we always try to perform shmem fuzzing
+  
+  afl->redis_port = 6379;
 
-  // still available: HjkKqrv
+  // still available: HjkKqv
   while (
       (opt = getopt(argc, argv,
-                    "+a:Ab:B:c:CdDe:E:f:F:g:G:hi:I:l:L:m:M:nNo:Op:P:QRs:S:t:T:J:"
+                    "+a:Ab:B:c:CdDe:E:f:F:g:G:hi:I:l:L:m:M:nNo:Op:P:Qs:S:t:T:J:r:R:"
                     "uUV:w:WXx:YzZ")) > 0) {
 
     switch (opt) {
@@ -940,6 +944,21 @@ int main(int argc, char **argv_orig, char **envp) {
         afl->n_fuzz_sync_file = ck_strdup(optarg);
 	OKF("Should synchronize to %s", afl->n_fuzz_sync_file);
         break;
+
+#ifdef USE_REDIS
+      case 'r':
+	if (!optarg) { FATAL("Missing host for -r"); }
+	afl->should_use_redis = 1;
+	afl->redis_host = ck_strdup(optarg);
+	OKF("Using Redis server: %s", afl->redis_host);
+	break;
+
+      case 'R':
+	if (!optarg) { FATAL("Missing port for -R"); }
+	afl->redis_port = atoi(optarg);
+	OKF("Using Redis port: %i", afl->redis_port);
+	break;
+#endif
 
       case 'F':                                         /* foreign sync dir */
 
@@ -1486,13 +1505,13 @@ int main(int argc, char **argv_orig, char **envp) {
         show_help++;
         break;  // not needed
 
-      case 'R':
+/*      case 'R':
 
         FATAL(
             "Radamsa is now a custom mutator, please use that "
             "(custom_mutators/radamsa/).");
 
-        break;
+        break; */
 
       default:
         if (!show_help) { show_help = 1; }
@@ -1743,6 +1762,28 @@ int main(int argc, char **argv_orig, char **envp) {
   }
 
   if (afl->shm.cmplog_mode) { OKF("CmpLog level: %u", afl->cmplog_lvl); }
+
+  /* Connect to Redis */
+#ifdef USE_REDIS
+  if(afl->should_use_redis)
+  {
+	struct timeval timeout = { 1, 500000 }; // 1.5 seconds
+	afl->redis_context = redisConnectWithTimeout(afl->redis_host, afl->redis_port, timeout);
+	if(afl->redis_context == NULL || afl->redis_context->err)
+	{
+		if(afl->redis_context)
+		{
+		  FATAL("Redis connection error: %s", afl->redis_context->errstr);
+		  redisFree(afl->redis_context);
+		  afl->redis_context = NULL;
+		}
+		else
+		{
+		  FATAL("Redis connection error: could not allocate redis context");
+		}
+	}
+  }
+#endif
 
   /* Dynamically allocate memory for AFLFast schedules */
   if (afl->schedule >= FAST && afl->schedule <= RARE) {

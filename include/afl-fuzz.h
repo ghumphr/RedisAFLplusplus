@@ -117,6 +117,17 @@
   #include <TargetConditionals.h>
 #endif
 
+#ifdef USE_REDIS
+  #include <hiredis/hiredis.h>
+
+  #define GET_FUZZ_LEVEL(a) redis_get_fuzz_level(afl, a)
+  #define INC_FUZZ_LEVEL(a) redis_inc_fuzz_level(afl, a)
+  #define CALCULATE_REDIS_HASH 1
+#else
+  #define GET_FUZZ_LEVEL(a) ((a)->fuzz_level)
+  #define INC_FUZZ_LEVEL(a) ((a)->fuzz_level++) 
+#endif
+
 #ifndef __has_builtin
   #define __has_builtin(x) 0
 #endif
@@ -207,6 +218,9 @@ struct skipdet_global {
 struct queue_entry {
 
   u8 *fname;                            /* File name for the test case      */
+#ifdef USE_REDIS
+  u8 *redis_hashstring;                 /* unique identifier for Redis queue entry */
+#endif
   u32 len;                              /* Input length                     */
   u32 id;                               /* entry number in queue_buf        */
 
@@ -554,7 +568,18 @@ typedef struct afl_state {
       *file_extension,                  /* File extension                   */
       *orig_cmdline,                    /* Original command line            */
       *n_fuzz_sync_file,                /* File to mmap() for n_fuzz        */
+#ifdef USE_REDIS
+      *redis_host,                      /* Host for redis synchronization */
+#endif
       *infoexec;                       /* Command to execute on a new crash */
+
+#ifdef USE_REDIS
+  redisContext *redis_context;
+#endif
+
+#ifdef USE_REDIS
+  u16 redis_port;
+#endif
 
   u32 hang_tmout,                       /* Timeout used for hang det (ms)   */
       stats_update_freq;                /* Stats update frequency (execs)   */
@@ -563,6 +588,9 @@ typedef struct afl_state {
       no_unlink,                        /* do not unlink cur_input          */
       debug,                            /* Debug mode                       */
       custom_only,                      /* Custom mutator only mode         */
+#ifdef USE_REDIS
+      should_use_redis,                 /* should we use Redis or not? */
+#endif
       custom_splice_optout,             /* Custom mutator no splice buffer  */
       is_main_node,                     /* if this is the main node         */
       is_secondary_node,                /* if this is a secondary instance  */
@@ -1469,6 +1497,14 @@ static inline u8 bitmap_read(u8 *map, u32 index) {
   return (map[index / 8] >> (index % 8)) & 1;
 
 }
+
+#ifdef USE_REDIS
+  extern u8 *calc_redis_hashstring(afl_state_t *afl, struct queue_entry *q);
+  extern u8 *get_redis_hashstring(afl_state_t *afl, struct queue_entry *q);
+  extern unsigned int redis_inc_fuzz_level(afl_state_t *afl, struct queue_entry *q);
+  extern unsigned int redis_get_fuzz_level(afl_state_t *afl, struct queue_entry *q);
+#endif
+
 
 #if TESTCASE_CACHE == 1
   #error define of TESTCASE_CACHE must be zero or larger than 1
