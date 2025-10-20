@@ -1,6 +1,6 @@
 ## What is this??
 
-AFL++ enhanced with distributed power schedules, by Geoffrey Humphreys for a thesis in Cybersecurity at the University of Nebraska at Omaha.
+This is a fork of AFL++ enhanced with distributed power schedules, by Geoffrey Humphreys for a thesis in Cybersecurity at the University of Nebraska at Omaha.
 
 ## How do I install it?
 
