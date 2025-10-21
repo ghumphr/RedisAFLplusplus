@@ -2,7 +2,7 @@
 
 <img src="https://github.com/ghumphr/RedisAFLplusplus/blob/main/docs/resources/american_fuzzy_lop_on_redis.png?raw=true" align="right" width="440px"/>
 
-This is a fork of AFL++ enhanced with distributed power schedules, by Geoffrey Humphreys for a thesis in Cybersecurity at the University of Nebraska at Omaha.
+This is a fork of AFL++ enhanced with distributed power schedules by Geoffrey Humphreys for a thesis in Cybersecurity at the University of Nebraska at Omaha.
 
 ## How do I install it?
 
