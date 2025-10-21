@@ -6,7 +6,7 @@ This is a fork of AFL++ enhanced with distributed power schedules by Geoffrey Hu
 
 ## How do I install it?
 
-You will need hiredis and a functional mmap() to compile it. At present, AFL++ requires a working fork() and SysV shared memory. If you want to fuzz on Windows, I recommend running AFL++ in WSL and using [Fpicker](https://github.com/ttdennis/fpicker) to fuzz Windows programs with Frida instrumentation.
+You will need hiredis and a functional mmap() to compile it. At present, AFL++ requires a working fork() and SysV shared memory.
 
     git clone https://github.com/ghumphr/RedisAFLplusplus
     cd RedisAFLplusplus
